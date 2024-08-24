@@ -33,7 +33,7 @@ public class AuthenticationManagement {
     }
     public static HttpHeaders loginToVCenter(String username, String password) throws JSONException {
         // Endpoint URL
-        String url = "https://10.9.21.102/rest/com/vmware/cis/session";
+        String url = "https://"+GlobalVars.serverIP+"/rest/com/vmware/cis/session";
 
         // Set up headers with basic authentication
         HttpHeaders headers = new HttpHeaders(createHeaders(username,password));
