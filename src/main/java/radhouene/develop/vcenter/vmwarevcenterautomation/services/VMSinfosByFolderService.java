@@ -15,8 +15,11 @@ import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder
 import radhouene.develop.vcenter.vmwarevcenterautomation.globalVars.GlobalVars;
 import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -105,8 +108,9 @@ public class VMSinfosByFolderService {
 //
 //            System.out.println(vmIdsofFolder(folder.folderId));
 //        }
-        vmNetworkInterfaces("vm-15");
-
+        //vmNetworkInterfaces("vm-15");
+        //System.out.println(vmInfoByIdObject(vmInfoById("vm-15"),allFolders.get(1),"vm-15").toString());
+        saveAllVms();
     }
 
 
@@ -120,7 +124,42 @@ public class VMSinfosByFolderService {
         );
         return responseEntity;
     }
+    public VmInfoByFolder vmInfoByIdObject(ResponseEntity<String> VMjson,Folder folder,String vmID) throws JSONException {
+        JSONObject vm = new JSONObject(VMjson.getBody());
 
+
+        VmInfoByFolder output = new VmInfoByFolder();
+        output.setFolder_clientName(folder.folderName);
+        output.setVmName(vm.getString("name"));
+        output.setOSType(vm.getString("guest_OS"));
+        output.setCpuCount(vm.getJSONObject("cpu").getString("count"));
+        output.setVmId(vmID);
+        output.setPowerState(vm.getString("power_state"));
+        output.setMemorySizeMB(vm.getJSONObject("memory").getString("size_MiB"));
+        output.setDiscSpaceGB(humanReadableByteCountSI(vm.getJSONObject("disks").getJSONObject("2000").getLong("capacity")));
+        if(Objects.equals(vm.getString("power_state"), "POWERED_ON")) {
+            List<String> vmIps = vmNetworkInterfaces(vmID);
+            StringBuilder ips= new StringBuilder();
+            for(String s : vmIps){
+                ips.append("{ ").append(s).append(" }  ");
+            }
+            output.setIps(ips.toString());
+        }
+
+
+        return  output;
+    }
+    public static String humanReadableByteCountSI(long bytes) {
+        if (-1000 < bytes && bytes < 1000) {
+            return bytes + " B";
+        }
+        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+        while (bytes <= -999_950 || bytes >= 999_950) {
+            bytes /= 1000;
+            ci.next();
+        }
+        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+    }
 
     public List<String> vmNetworkInterfaces(String vmId) throws JSONException {
         String url = vmNetworkUrlPrefix + vmId + vmNetworkUrlSuffix;
@@ -146,12 +185,13 @@ public class VMSinfosByFolderService {
     }
 
     public void saveAllVms() throws JSONException {
-        repository.deleteAll();
+        //repository.deleteAll();
         List<Folder> allFolders = allFoldersList();
         for(Folder folder : allFolders){
             List<String> vmsOfCurrentFolder = vmIdsofFolder(folder.folderId);
                 for(String vm : vmsOfCurrentFolder){
-                    VmInfoByFolder vmToSave = new VmInfoByFolder();
+                    VmInfoByFolder vmToSave = vmInfoByIdObject(vmInfoById(vm),folder,vm);
+                    repository.save(vmToSave);
                 }
         }
 

@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder;
 
 @Repository
-public interface VmInfoByFolderRepository extends JpaRepository<VmInfoByFolder, Integer>{
+public interface VmInfoByFolderRepository extends JpaRepository<VmInfoByFolder, String>{
 }
