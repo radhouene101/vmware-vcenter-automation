@@ -28,17 +28,21 @@ import java.util.stream.Stream;
 
 public class PdfGeneratorService {
     @Autowired
-    private final VmInfoByFolderRepository vmInfoByFolderRepository;
+    private  VmInfoByFolderRepository vmInfoByFolderRepository;
 
-    public ByteArrayOutputStream GlobalReportPdf() throws IOException, DocumentException, URISyntaxException {
+
+    public  ByteArrayOutputStream GlobalReportPdf() throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, outputStream);
+        document.setPageSize(new Rectangle(2000,800));
         document.open();
-        Paragraph header = new Paragraph();
-        header.add("Global Report Vcenter");
+        Font font = FontFactory.getFont(FontFactory.HELVETICA, 32);
+        Paragraph header = new Paragraph("Global Report Vcenter", font);
+        //header.add("Global Report Vcenter");
         header.setAlignment(Element.ALIGN_CENTER);
         header.setSpacingAfter(20);
+
         PdfPTable table1 = new PdfPTable(1);
         addCustomImage(table1);
         document.add(table1);

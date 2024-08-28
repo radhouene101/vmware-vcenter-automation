@@ -12,8 +12,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder;
+import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfosAllHistory;
 import radhouene.develop.vcenter.vmwarevcenterautomation.globalVars.GlobalVars;
 import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
+import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfosAllHistoryRepository;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -28,6 +30,7 @@ import java.util.Objects;
 public class VMSinfosByFolderService {
     private static RestTemplate restTemplate = new RestTemplate();
     private final VmInfoByFolderRepository repository;
+    private final VmInfosAllHistoryRepository historyRepository;
     private final String vmByIdUrlPrefix = "https://"+ GlobalVars.serverIP +"/api/vcenter/vm/";
     private final String allVmsUrl = "https://"+ GlobalVars.serverIP +"/rest/vcenter/vm";
     private final String allFoldersUrl = "https://"+ GlobalVars.serverIP +"/rest/vcenter/folder";
@@ -99,17 +102,8 @@ public class VMSinfosByFolderService {
         return output;
     }
     public record Folder(String folderId, String folderName, String folderType) { }
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 20000)
     public void printVMs() throws JSONException {
-        //System.out.println(numberOfVMs());
-        //allFoldersList();
-        List<Folder> allFolders = allFoldersList();
-//        for(Folder folder : allFolders){
-//
-//            System.out.println(vmIdsofFolder(folder.folderId));
-//        }
-        //vmNetworkInterfaces("vm-15");
-        //System.out.println(vmInfoByIdObject(vmInfoById("vm-15"),allFolders.get(1),"vm-15").toString());
         saveAllVms();
     }
 
@@ -135,13 +129,15 @@ public class VMSinfosByFolderService {
         output.setCpuCount(vm.getJSONObject("cpu").getString("count"));
         output.setVmId(vmID);
         output.setPowerState(vm.getString("power_state"));
-        output.setMemorySizeMB(vm.getJSONObject("memory").getString("size_MiB"));
+        String memory = vm.getJSONObject("memory").getString("size_MiB");
+        Float memoryLong = Float.parseFloat(memory)/1024;
+        output.setMemorySizeMB(memoryLong +"GB");
         output.setDiscSpaceGB(humanReadableByteCountSI(vm.getJSONObject("disks").getJSONObject("2000").getLong("capacity")));
         if(Objects.equals(vm.getString("power_state"), "POWERED_ON")) {
             List<String> vmIps = vmNetworkInterfaces(vmID);
             StringBuilder ips= new StringBuilder();
             for(String s : vmIps){
-                ips.append("{ ").append(s).append(" }  ");
+                ips.append("[").append(s).append("] ");
             }
             output.setIps(ips.toString());
         }
@@ -185,13 +181,15 @@ public class VMSinfosByFolderService {
     }
 
     public void saveAllVms() throws JSONException {
-        //repository.deleteAll();
+        repository.deleteAll();
         List<Folder> allFolders = allFoldersList();
         for(Folder folder : allFolders){
             List<String> vmsOfCurrentFolder = vmIdsofFolder(folder.folderId);
                 for(String vm : vmsOfCurrentFolder){
                     VmInfoByFolder vmToSave = vmInfoByIdObject(vmInfoById(vm),folder,vm);
                     repository.save(vmToSave);
+                    historyRepository.save(new VmInfosAllHistory(vmToSave));
+
                 }
         }
 
