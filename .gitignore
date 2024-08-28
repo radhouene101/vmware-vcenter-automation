@@ -34,8 +34,11 @@ build/
 
 ### credentials ###
 src/main/java/radhouene/develop/vcenter/vmwarevcenterautomation/globalVars/GlobalVars.java
-
+#Contains secrets
 src/main/resources/application.properties
+# contains powerShell auth to vcenter credentials
+src/main/java/radhouene/develop/vcenter/vmwarevcenterautomation/services/powerShellProcess/powerShellProcess.ps1
+
 ##### the class looks like this :
 #@Component
 #public class GlobalVars {
