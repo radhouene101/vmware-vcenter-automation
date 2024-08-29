@@ -117,4 +117,58 @@ public class PdfController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/client-name/{clientName}")
+    public ResponseEntity<ByteArrayResource> generatePDFByClientName(@PathVariable String clientName)  {
+        try {
+            // Generate PDF and get it as a ByteArrayOutputStream
+            List<VmInfoByFolder> soAssociatedVms = vmInfoByFolderRepository.findByClientName(clientName);
+            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(soAssociatedVms,clientName);
+
+            // Convert the ByteArrayOutputStream to a ByteArrayResource
+            ByteArrayResource pdfResource = new ByteArrayResource(pdfOutputStream.toByteArray());
+
+            // Set the headers for file download
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename= "+clientName+" VcenterReport--.pdf");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE);
+            // Return the PDF as a ResponseEntity
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(pdfResource.contentLength())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfResource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/client-name/{clientName}/{email}")
+    public ResponseEntity<ByteArrayResource> generatePDFByClientNameAndSendByEmail(@PathVariable String clientName, @PathVariable String email)  {
+        try {
+            // Generate PDF and get it as a ByteArrayOutputStream
+            List<VmInfoByFolder> soAssociatedVms = vmInfoByFolderRepository.findByClientName(clientName);
+            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(soAssociatedVms,clientName);
+
+            // Convert the ByteArrayOutputStream to a ByteArrayResource
+            ByteArrayResource pdfResource = new ByteArrayResource(pdfOutputStream.toByteArray());
+
+            // Set the headers for file download
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename= "+clientName+" VcenterReport--.pdf");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE);
+            emailService.sendPdfReport(email,"Vcenter Report for client "+clientName, "Please find attached the report for client "+clientName,pdfOutputStream);
+            // Return the PDF as a ResponseEntity
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(pdfResource.contentLength())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfResource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

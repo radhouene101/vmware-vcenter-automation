@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymleaf.org">
+<head>
+    <title>Generate PDF for Client Current Usage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-sumbit {
+            width: 100%;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .reset {
+            width: 100%;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+    </style>
+    <script>
+        function toggleFields() {
+            const clientTag = document.getElementById("tag_SO");
+            const clientName = document.getElementById("clientName");
+
+            if (clientTag.length > 0 ) {
+                clientName.disabled = true;
+            } else {
+                clientTag.disabled = true;
+            }
+        }
+    </script>
+</head>
+<body>
+<div>
+    <h1>Generate PDF for Client Current Usage</h1>
+    <form action="#" th:action="@{/UI-Access}" method="post" th:object="${clientSO}">
+        <label>Client Tag (SO)</label>
+        <input type="text" id="tag_SO" th:field="*{tag_SO}" placeholder="Enter Client Tag" oninput="toggleFields()">
+
+        <label>ClientName</label>
+        <input type="text" id="clientName" th:field="*{clientName}" placeholder="Client1" oninput="toggleFields()">
+
+        <label>Address to send the file to</label>
+        <input type="text" id="email" th:field="*{email}" placeholder="example@next-step.tn" >
+
+        <button type="submit" class="button-sumbita">Submit</button>
+        <button type="reset" class="reset">Reset</button>
+    </form>
+</div>
+</body>
+</html>
