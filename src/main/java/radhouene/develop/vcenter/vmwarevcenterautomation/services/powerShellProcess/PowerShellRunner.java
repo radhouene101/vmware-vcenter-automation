@@ -1,23 +1,38 @@
 package radhouene.develop.vcenter.vmwarevcenterautomation.services.powerShellProcess;
 
+import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder;
 import radhouene.develop.vcenter.vmwarevcenterautomation.globalVars.GlobalVars;
+import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class PowerShellRunner {
+    @Autowired
+    private final VmInfoByFolderRepository vmInfoByFolderRepository;
     private static final String connect="Connect-VIServer -Server "+ GlobalVars.serverIP +" -User "+GlobalVars.username
             +" -Password "+GlobalVars.password
-            +" 2>$null | Out-Null ; Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false ; ";
-    private int lineCount=0;
-    public String runCommandAndReturnJsonArrayFormat(String command) {
+            +" 2>$null | Out-Null ; ";
+
+    private static int lineCount=0;
+
+
+
+    public static String runCommandAndReturnJsonArrayFormat(String command) {
     StringBuilder output = new StringBuilder();
 
     try {
@@ -57,7 +72,7 @@ public class PowerShellRunner {
 
         return output.toString();
 }
-    public String runCommand(String command) {
+    public static String runCommand(String command) {
         StringBuilder output = new StringBuilder();
 
         try {
@@ -75,7 +90,7 @@ public class PowerShellRunner {
 
 
             while ((line = reader.readLine()) != null) {
-                this.lineCount++;
+                lineCount++;
                 output.append(line).append("\n");
             }
 
@@ -88,13 +103,13 @@ public class PowerShellRunner {
         return output.toString();
     }
     public JSONArray getTagsJson(String commandToRun) throws JSONException {
-        PowerShellRunner powerShellRunner = new PowerShellRunner();
+
         String connectCommand = "Connect-VIServer -Server "+ GlobalVars.serverIP +" -User "+GlobalVars.username
                 +" -Password "+GlobalVars.password
                 +" | Out-Null ; "
                 +commandToRun+" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue";
 
-        String getTagsCommand = powerShellRunner.runCommandAndReturnJsonArrayFormat(connectCommand);
+        String getTagsCommand = runCommandAndReturnJsonArrayFormat(connectCommand);
         //System.out.println("Cleaned Output: " + getTagsCommand);
         // Convert to JSONObject if output is valid JSON
         return new JSONArray(getTagsCommand);
@@ -103,16 +118,22 @@ public class PowerShellRunner {
     public record Tag(String name, String Description) {}
 
 
-    @Scheduled(fixedRate = 50000)
-    public void tryingPowerShellExec() throws JSONException {
+    @Scheduled(fixedDelay = 50000)
+    public void tryingPowerShellExec() throws JSONException, IOException {
          List<Tag> tags = getTagsList();
             for(Tag tag: tags){
                 System.out.println(tag.toString());
-                List<String> vmByTag = vmsByTag(tag.name());
+                List<String> vmByTag =  vmsByTag(tag.name());
+                System.out.println("size of array is "+vmByTag.size());
                 for(String vm: vmByTag){
-                    System.out.println("-----------------------------");
                     System.out.println(vm);
-                    System.out.println("*-----------------------------*");
+                    VmInfoByFolder vmInfoByFolder = vmInfoByFolderRepository.findById(vm).orElse(null);
+                    if(vmInfoByFolder==null){
+                        continue;
+                    }
+                    vmInfoByFolder.setTag_SO(tag.name());
+                    vmInfoByFolder.setTag_SO_Client(tag.Description());
+                    vmInfoByFolderRepository.save(vmInfoByFolder);
                 }
 
             }
@@ -129,26 +150,24 @@ public class PowerShellRunner {
         return tagList;
     }
 
+//TODO: Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $true or $false. put this in every server sinon data matjich shyha
 
+    public List<String> vmsByTag(String tag) throws JSONException, IOException {
+        String commandToListVmByTag = "Get-VM -Tag "+ tag+ " -WarningAction SilentlyContinue 2>$null | % { $_.Id -replace '^VirtualMachine-', '' } -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Out-String";
 
-    public List<String> vmsByTag(String tag) throws JSONException {
-        String commandToListVmByTag = "Get-VM -Tag "+ tag+ " -WarningAction SilentlyContinue 2>$null | % { $_.Id -replace '^VirtualMachine-', '' } -WarningAction SilentlyContinue -ErrorAction SilentlyContinue";
-        PowerShellRunner powerShellRunner = new PowerShellRunner();
-        String outputOfCommand=powerShellRunner.runCommand(connect+commandToListVmByTag);
+        String outputOfCommand=runCommand(connect+commandToListVmByTag);
         List<String> vmList = new ArrayList<>();
-        if(this.lineCount>1){
-            outputOfCommand=powerShellRunner.runCommandAndReturnJsonArrayFormat(connect+commandToListVmByTag);
+        if(lineCount>1){
+            outputOfCommand=runCommand(connect+commandToListVmByTag);
+            //String[] vms = outputOfCommand.split("\n");
+            String[] splittedIds = outputOfCommand.split("\n");
+            vmList.addAll(List.of(splittedIds));
 
-            JSONArray vms = new JSONArray(outputOfCommand);
-//            System.out.println("888888888888888888888");
-//            System.out.println(outputOfCommand);
-//            System.out.println("88888888888888888888");
-        for (int i = 0; i < vms.length(); i++) {
-            vmList.add(vms.get(i).toString());
+            return vmList;
         }
+        String[] splittedIds = outputOfCommand.split("\n");
+        vmList.addAll(List.of(splittedIds));
         return vmList;
-        }
-        vmList.add(outputOfCommand);
-        return vmList;
+
     }
 }

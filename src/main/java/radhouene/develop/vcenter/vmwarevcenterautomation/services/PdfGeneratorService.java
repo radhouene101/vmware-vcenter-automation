@@ -31,7 +31,7 @@ public class PdfGeneratorService {
     private  VmInfoByFolderRepository vmInfoByFolderRepository;
 
 
-    public  ByteArrayOutputStream GlobalReportPdf() throws IOException, DocumentException, URISyntaxException {
+    public  ByteArrayOutputStream GlobalReportPdf( List<VmInfoByFolder> listOfVms) throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, outputStream);
@@ -49,8 +49,8 @@ public class PdfGeneratorService {
         document.add(header);
         PdfPTable table = new PdfPTable(9);
         tableHeaderTenants(table);
-        List<VmInfoByFolder> vmInfoByFolderList = vmInfoByFolderRepository.findAll();
-        for(VmInfoByFolder vm : vmInfoByFolderList) {
+
+        for(VmInfoByFolder vm : listOfVms) {
             addRowTenants(table, vm);
         }
 

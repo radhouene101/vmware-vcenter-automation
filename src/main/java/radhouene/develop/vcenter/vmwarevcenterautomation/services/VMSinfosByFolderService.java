@@ -20,6 +20,7 @@ import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfosAllHi
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -102,7 +103,7 @@ public class VMSinfosByFolderService {
         return output;
     }
     public record Folder(String folderId, String folderName, String folderType) { }
-    @Scheduled(fixedRate = 20000)
+    @Scheduled(fixedRate = 120000)
     public void printVMs() throws JSONException {
         saveAllVms();
     }
@@ -181,16 +182,42 @@ public class VMSinfosByFolderService {
     }
 
     public void saveAllVms() throws JSONException {
-        repository.deleteAll();
         List<Folder> allFolders = allFoldersList();
+        List<VmInfoByFolder> listOfAllCurrentExistingVms = new ArrayList<>();
         for(Folder folder : allFolders){
             List<String> vmsOfCurrentFolder = vmIdsofFolder(folder.folderId);
-                for(String vm : vmsOfCurrentFolder){
-                    VmInfoByFolder vmToSave = vmInfoByIdObject(vmInfoById(vm),folder,vm);
-                    repository.save(vmToSave);
-                    historyRepository.save(new VmInfosAllHistory(vmToSave));
+            for(String vm : vmsOfCurrentFolder){
+                VmInfoByFolder vmToSave = vmInfoByIdObject(vmInfoById(vm),folder,vm);
+                repository.save(vmToSave);
+                historyRepository.save(new VmInfosAllHistory(vmToSave));
+                listOfAllCurrentExistingVms.add(vmToSave);
+            }
+        }
+        List<VmInfoByFolder> allVms = repository.findAll();
+        //check ken el vm andou tag or not ken lé nhoto tag vm
+        for(VmInfoByFolder vm : allVms){
+            if(vm.getTag_SO()==null){
+                vm.setTag_SO("vm");
+                vm.setTag_SO_Client("vm");
+                repository.save(vm);
+            }
+        }
 
+        //nthabtou ken el etat courante mtaa database kima el data eli kaada tji mel api
+        if(new HashSet<>(listOfAllCurrentExistingVms).containsAll(allVms)) {
+            System.out.println("data Base is perfectly update");
+        }else{
+
+            for(VmInfoByFolder vm : allVms){
+                if(listOfAllCurrentExistingVms.isEmpty()){
+                    break;
                 }
+                if(!listOfAllCurrentExistingVms.contains(vm) ){
+                    //repository.deleteById(vm.getVmId());
+                }else{
+                    repository.save(vm);
+                }
+            }
         }
 
 

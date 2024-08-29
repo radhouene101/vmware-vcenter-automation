@@ -24,5 +24,7 @@ public class VmInfoByFolder {
     private String discSpaceGB;
     private String OSType;
     public String ips;
+    public String tag_SO;
+    public String tag_SO_Client;
 
 }

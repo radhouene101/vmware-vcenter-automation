@@ -1,83 +1,40 @@
-//package radhouene.develop.vcenter.vmwarevcenterautomation.services.powerShellProcess;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Component;
-//
-//import java.io.BufferedReader;
-//import java.io.InputStreamReader;
-//import java.io.OutputStreamWriter;
-//import java.io.PrintWriter;
-//
-//@Component
-//public class PowerShellService {
-//
-//    private Process powerShellProcess;
-//    private PrintWriter writer;
-//    private BufferedReader reader;
-//
-//    public void startPowerShellService() {
-//        try {
-//            // Start the PowerShell script
-//            ProcessBuilder processBuilder = new ProcessBuilder("powershell.exe", "-File", "src/main/java/radhouene/develop/vcenter/vmwarevcenterautomation/services/powerShellProcess/powerShellProcess.ps1");
-//            processBuilder.redirectErrorStream(true);
-//            powerShellProcess = processBuilder.start();
-//
-//            // Setup input/output streams
-//            writer = new PrintWriter(new OutputStreamWriter(powerShellProcess.getOutputStream()), true);
-//            reader = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
-//
-//            // Read initialization messages
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                System.out.println("PowerShell: " + line); // Debugging output
-//
+package radhouene.develop.vcenter.vmwarevcenterautomation.services.powerShellProcess;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder;
+import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
+
+import java.io.*;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class PowerShellService {
+
+//    @Autowired
+//    private final VmInfoByFolderRepository vmInfoByFolderRepository;
+//    @Scheduled(fixedRate = 50000)
+//    public  void tryingPowerShellExec() throws JSONException, IOException {
+//        List<PowerShellRunner.Tag> tags = PowerShellRunner.getTagsList();
+//        for(PowerShellRunner.Tag tag: tags){
+//            System.out.println(tag.toString());
+//            List<String> vmByTag =  PowerShellRunner.vmsByTag(tag.name());
+//            System.out.println("size of array is "+vmByTag.size());
+//            for(String vm: vmByTag){
+//                System.out.println(vm);
+//                VmInfoByFolder vmInfoByFolder = vmInfoByFolderRepository.findById(vm).orElseThrow(EntityNotFoundException::new);
+//                vmInfoByFolder.setTag_SO(tag.name());
+//                vmInfoByFolder.setTag_SO_Client(tag.Description());
+//                vmInfoByFolderRepository.save(vmInfoByFolder);
 //            }
 //
-//        } catch (Exception e) {
-//            e.printStackTrace();
 //        }
 //    }
-////    public void startPowerShellService() {
-////        try {
-////            // Start the PowerShell script
-////            ProcessBuilder processBuilder = new ProcessBuilder("powershell.exe", "-File", "src/main/java/radhouene/develop/vcenter/vmwarevcenterautomation/services/powerShellProcess/powerShellProcess.ps1");
-////            processBuilder.redirectErrorStream(true);
-////            powerShellProcess = processBuilder.start();
-////
-////            // Setup input/output streams
-////            writer = new PrintWriter(new OutputStreamWriter(powerShellProcess.getOutputStream()), true);
-////            reader = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
-////
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        }
-////    }
-//
-//    public String runCommand(String command) {
-//        if (writer == null || reader == null) {
-//            startPowerShellService();
-//        }
-//
-//        try {
-//            // Send command to PowerShell script
-//            writer.println(command);
-//            writer.flush();
-//
-//            // Read the response
-//            StringBuilder output = new StringBuilder();
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                output.append(line).append("\n");
-//                if (line.contains("Enter Command")) { // Check for prompt
-//                    break;
-//                }
-//            }
-//
-//            return output.toString();
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return "Error executing command";
-//        }
-//    }
-//}
+
+}

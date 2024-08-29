@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,10 +21,12 @@ public class EmailScheduledService {
     @Autowired
     private final PdfGeneratorService pdfGeneratorService;
 
+    @Autowired
+    private final VmInfoByFolderRepository vmInfoByFolderRepository;
     //@Scheduled(fixedRate = 10000)
     @Scheduled(cron = "0 0 8,17 * * *" )
     public void sendDailyEmail() throws DocumentException, IOException, URISyntaxException, MessagingException {
-        ByteArrayOutputStream pdfContent =pdfGeneratorService.GlobalReportPdf();
+        ByteArrayOutputStream pdfContent =pdfGeneratorService.GlobalReportPdf(vmInfoByFolderRepository.findAll());
         emailService.sendPdfReport("fberrzig@gmail.com", "Global Report", "Please find the attached report.", pdfContent);
         System.out.println("===========================================mail sent========================");
         System.out.println("mail sent");
