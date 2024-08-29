@@ -31,14 +31,14 @@ public class PdfGeneratorService {
     private  VmInfoByFolderRepository vmInfoByFolderRepository;
 
 
-    public  ByteArrayOutputStream GlobalReportPdf( List<VmInfoByFolder> listOfVms) throws IOException, DocumentException, URISyntaxException {
+    public  ByteArrayOutputStream GlobalReportPdf( List<VmInfoByFolder> listOfVms,String client) throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, outputStream);
         document.setPageSize(new Rectangle(2000,800));
         document.open();
         Font font = FontFactory.getFont(FontFactory.HELVETICA, 32);
-        Paragraph header = new Paragraph("Global Report Vcenter", font);
+        Paragraph header = new Paragraph("Usage Report Vcenter for "+client, font);
         //header.add("Global Report Vcenter");
         header.setAlignment(Element.ALIGN_CENTER);
         header.setSpacingAfter(20);

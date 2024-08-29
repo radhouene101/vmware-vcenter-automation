@@ -26,7 +26,7 @@ public class EmailScheduledService {
     //@Scheduled(fixedRate = 10000)
     @Scheduled(cron = "0 0 8,17 * * *" )
     public void sendDailyEmail() throws DocumentException, IOException, URISyntaxException, MessagingException {
-        ByteArrayOutputStream pdfContent =pdfGeneratorService.GlobalReportPdf(vmInfoByFolderRepository.findAll());
+        ByteArrayOutputStream pdfContent =pdfGeneratorService.GlobalReportPdf(vmInfoByFolderRepository.findAll(),"Global");
         emailService.sendPdfReport("fberrzig@gmail.com", "Global Report", "Please find the attached report.", pdfContent);
         System.out.println("===========================================mail sent========================");
         System.out.println("mail sent");

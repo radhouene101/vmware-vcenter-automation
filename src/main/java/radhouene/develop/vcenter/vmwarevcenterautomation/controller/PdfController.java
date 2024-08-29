@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import radhouene.develop.vcenter.vmwarevcenterautomation.entities.VmInfoByFolder;
 import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfoByFolderRepository;
+import radhouene.develop.vcenter.vmwarevcenterautomation.services.EmailService;
 import radhouene.develop.vcenter.vmwarevcenterautomation.services.PdfGeneratorService;
 
 import java.io.ByteArrayOutputStream;
@@ -32,12 +33,14 @@ public class PdfController {
     @Autowired
     private final VmInfoByFolderRepository vmInfoByFolderRepository;
 
+    @Autowired
+    private final EmailService emailService;
     @GetMapping
     public ResponseEntity<ByteArrayResource> generatePDFGlobal() throws DocumentException, FileNotFoundException {
         try {
             // Generate PDF and get it as a ByteArrayOutputStream
             List<VmInfoByFolder> soAssociatedVms = vmInfoByFolderRepository.findAll();
-            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(vmInfoByFolderRepository.findAll());
+            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(vmInfoByFolderRepository.findAll(),"Global");
 
             // Convert the ByteArrayOutputStream to a ByteArrayResource
             ByteArrayResource pdfResource = new ByteArrayResource(pdfOutputStream.toByteArray());
@@ -65,16 +68,43 @@ public class PdfController {
         try {
             // Generate PDF and get it as a ByteArrayOutputStream
             List<VmInfoByFolder> soAssociatedVms = vmInfoByFolderRepository.findByTag_SO(SO);
-            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(soAssociatedVms);
+            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(soAssociatedVms,SO);
 
             // Convert the ByteArrayOutputStream to a ByteArrayResource
             ByteArrayResource pdfResource = new ByteArrayResource(pdfOutputStream.toByteArray());
 
             // Set the headers for file download
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+SO+"VcenterReport--.pdf");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename= "+SO+" VcenterReport--.pdf");
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE);
 
+            // Return the PDF as a ResponseEntity
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(pdfResource.contentLength())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfResource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/{SO}/{email}")
+    public ResponseEntity<ByteArrayResource> generatePDFBySO(@PathVariable String SO, @PathVariable String email)  {
+        try {
+            // Generate PDF and get it as a ByteArrayOutputStream
+            List<VmInfoByFolder> soAssociatedVms = vmInfoByFolderRepository.findByTag_SO(SO);
+            ByteArrayOutputStream pdfOutputStream = pdfGeneratorService.GlobalReportPdf(soAssociatedVms,SO);
+
+            // Convert the ByteArrayOutputStream to a ByteArrayResource
+            ByteArrayResource pdfResource = new ByteArrayResource(pdfOutputStream.toByteArray());
+
+            // Set the headers for file download
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename= "+SO+" VcenterReport--.pdf");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE);
+            emailService.sendPdfReport(email,"Vcenter Report for client "+SO, "Please find attached the report for client "+SO,pdfOutputStream);
             // Return the PDF as a ResponseEntity
             return ResponseEntity.ok()
                     .headers(headers)
