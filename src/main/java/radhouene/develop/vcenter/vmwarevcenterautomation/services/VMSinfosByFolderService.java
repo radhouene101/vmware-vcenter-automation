@@ -19,10 +19,7 @@ import radhouene.develop.vcenter.vmwarevcenterautomation.repository.VmInfosAllHi
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Getter
 @Setter
@@ -188,7 +185,15 @@ public class VMSinfosByFolderService {
             List<String> vmsOfCurrentFolder = vmIdsofFolder(folder.folderId);
             for(String vm : vmsOfCurrentFolder){
                 VmInfoByFolder vmToSave = vmInfoByIdObject(vmInfoById(vm),folder,vm);
-                repository.save(vmToSave);
+                VmInfoByFolder sameVmButFromDatabase = repository.findById(vmToSave.getVmId()).orElse(null);
+                if (sameVmButFromDatabase == null) {
+                    repository.save(vmToSave);
+                }else if(!sameVmButFromDatabase.equals(vmToSave)){
+                    vmToSave.setTag_SO_Client(sameVmButFromDatabase.getTag_SO_Client());
+                    vmToSave.setTag_SO(sameVmButFromDatabase.getTag_SO());
+                    repository.save(vmToSave);
+                }
+                //TODO : el mochkel khater nsavi direct donc  tags yetnahaw
                 historyRepository.save(new VmInfosAllHistory(vmToSave));
                 listOfAllCurrentExistingVms.add(vmToSave);
             }
@@ -196,26 +201,28 @@ public class VMSinfosByFolderService {
         List<VmInfoByFolder> allVms = repository.findAll();
         //check ken el vm andou tag or not ken lé nhoto tag vm
         for(VmInfoByFolder vm : allVms){
-            if(vm.getTag_SO()==null){
+            if(vm.getTag_SO()==null || !vm.getTag_SO().startsWith("SO")){
                 vm.setTag_SO("vm");
                 vm.setTag_SO_Client("vm");
                 repository.save(vm);
-            }
+           }
         }
 
         //nthabtou ken el etat courante mtaa database kima el data eli kaada tji mel api
+        List<String> vmsFromApisIds = new ArrayList<>(listOfAllCurrentExistingVms.stream().map(VmInfoByFolder::getVmId).toList());
+        Collections.sort(vmsFromApisIds);
+        List<String> vmsFromDataBaseIds = new ArrayList<>(listOfAllCurrentExistingVms.stream().map(VmInfoByFolder::getVmId).toList());
+        Collections.sort(vmsFromDataBaseIds);
         if(new HashSet<>(listOfAllCurrentExistingVms).containsAll(allVms)) {
             System.out.println("data Base is perfectly update");
         }else{
 
-            for(VmInfoByFolder vm : allVms){
+            for(String vm : vmsFromDataBaseIds){
                 if(listOfAllCurrentExistingVms.isEmpty()){
                     break;
                 }
-                if(!listOfAllCurrentExistingVms.contains(vm) ){
-                    //repository.deleteById(vm.getVmId());
-                }else{
-                    repository.save(vm);
+                if(!vmsFromApisIds.contains(vm) ){
+                    repository.deleteById(vm);
                 }
             }
         }

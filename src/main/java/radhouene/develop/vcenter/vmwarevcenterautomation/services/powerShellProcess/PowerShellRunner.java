@@ -18,6 +18,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Component
 @AllArgsConstructor
@@ -102,6 +105,97 @@ public class PowerShellRunner {
 
         return output.toString();
     }
+
+
+
+//    public static String runCommand(String command) {
+//        StringBuilder output = new StringBuilder();
+//
+//        Thread thread = new Thread(() -> {
+//            try {
+//                // Prepare PowerShell command
+//                String[] cmd = {"powershell.exe", "/c", command};
+//
+//                // Use ProcessBuilder to run the command
+//                ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+//                processBuilder.redirectErrorStream(true);
+//                Process process = processBuilder.start();
+//
+//                // Read the output
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//                String line;
+//
+//                while ((line = reader.readLine()) != null) {
+//                    output.append(line).append("\n");
+//                }
+//
+//                // Wait for the process to finish
+//                process.waitFor();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        });
+//
+//        thread.start();
+//        try {
+//            thread.join();  // Wait for the thread to finish
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return output.toString();
+//    }
+//
+//    public static String runCommandAndReturnJsonArrayFormat(String command) {
+//        StringBuilder output = new StringBuilder();
+//
+//        Thread thread = new Thread(() -> {
+//            try {
+//                // Prepare PowerShell command
+//                String[] cmd = {"powershell.exe", "/c", command};
+//
+//                // Use ProcessBuilder to run the command
+//                ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+//                processBuilder.redirectErrorStream(true);
+//                Process process = processBuilder.start();
+//
+//                // Read the output
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//                String line;
+//
+//                boolean isFROMjson = false;
+//                while ((line = reader.readLine()) != null) {
+//
+//                    if (line.contains("[")) {
+//                        isFROMjson = true;
+//
+//                    } else if (line.contains("]")) {
+//                        output.append(line).append("\n");
+//                        break;
+//                    }
+//                    if (isFROMjson) {
+//                        output.append(line).append("\n");
+//                    }
+//                }
+//
+//                // Wait for the process to finish
+//                process.waitFor();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        });
+//
+//        thread.start();
+//        try {
+//            thread.join();  // Wait for the thread to finish
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return output.toString();
+//    }
+
+
     public JSONArray getTagsJson(String commandToRun) throws JSONException {
 
         String connectCommand = "Connect-VIServer -Server "+ GlobalVars.serverIP +" -User "+GlobalVars.username
