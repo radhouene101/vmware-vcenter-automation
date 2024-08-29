@@ -24,9 +24,13 @@ public class VmInfosAllHistory {
     private String powerState;
     private String cpuCount;
     private String memorySizeMB;
-    private String discSpaceGB;
+    private String UseddiscSpaceGB;
+    private String ReserveDdiscSpaceGB;
     private String OSType;
     public String ips;
+    public String tag_SO;
+    public String tag_SO_Client;
+    private String discType;
 
     public VmInfosAllHistory(VmInfoByFolder vmInfoByFolder) {
         this.VmId = vmInfoByFolder.getVmId();
@@ -35,8 +39,12 @@ public class VmInfosAllHistory {
         this.powerState = vmInfoByFolder.getPowerState();
         this.cpuCount = vmInfoByFolder.getCpuCount();
         this.memorySizeMB = vmInfoByFolder.getMemorySizeMB();
-        this.discSpaceGB = vmInfoByFolder.getDiscSpaceGB();
         this.OSType = vmInfoByFolder.getOSType();
         this.ips = vmInfoByFolder.getIps();
+        this.discType = vmInfoByFolder.getDiscType();
+        this.UseddiscSpaceGB = vmInfoByFolder.getUseddiscSpaceGB();
+        this.ReserveDdiscSpaceGB = vmInfoByFolder.getReserveDdiscSpaceGB();
+        this.tag_SO = vmInfoByFolder.getTag_SO();
+        this.tag_SO_Client = vmInfoByFolder.getTag_SO_Client();
     }
 }

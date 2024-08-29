@@ -47,7 +47,7 @@ public class PdfGeneratorService {
         addCustomImage(table1);
         document.add(table1);
         document.add(header);
-        PdfPTable table = new PdfPTable(9);
+        PdfPTable table = new PdfPTable(12);
         tableHeaderTenants(table);
 
         for(VmInfoByFolder vm : listOfVms) {
@@ -61,7 +61,7 @@ public class PdfGeneratorService {
         return outputStream;
     }
     public static void tableHeaderTenants(PdfPTable table) {
-        Stream.of("Client name", "VM Name", "Power State", "Cpu", "Memory (RAM)","Used Space GB" ,"Guest_OS" ,"IPs","VM ID")
+        Stream.of("Client name", "SO","VM Name", "Power State", "Cpu", "Memory (RAM)","Used Space GB" ,"Reserved Space","Disk Type","Guest_OS" ,"IPs","VM ID")
                 .forEach(columnTitle -> {
                     PdfPCell header = new PdfPCell();
                     header.setBackgroundColor(BaseColor.LIGHT_GRAY);
@@ -82,11 +82,14 @@ public class PdfGeneratorService {
     public static void addRowTenants(PdfPTable table, VmInfoByFolder vm) {
         VmToDisplay vmToDisplay = new VmToDisplay(vm);
         table.addCell(vmToDisplay.getFolder_clientName());
+        table.addCell(vmToDisplay.getTag_SO());
         table.addCell(vmToDisplay.getVmName());
         table.addCell(vmToDisplay.getPowerState());
         table.addCell(vmToDisplay.getCpuCount());
         table.addCell(vmToDisplay.getMemorySizeMB());
-        table.addCell(vmToDisplay.getDiscSpaceGB());
+        table.addCell(vmToDisplay.getUseddiscSpaceGB());
+        table.addCell(vmToDisplay.getReserveDdiscSpaceGB());
+        table.addCell(vmToDisplay.getDiscType());
         table.addCell(vmToDisplay.getOSType());
         table.addCell(vmToDisplay.ips);
         table.addCell(vmToDisplay.getVmId());
@@ -119,9 +122,14 @@ class VmToDisplay {
     private String powerState;
     private String cpuCount;
     private String memorySizeMB;
-    private String discSpaceGB;
+    private String UseddiscSpaceGB;
+    private String ReserveDdiscSpaceGB;
     private String OSType;
     public String ips;
+    public String tag_SO;
+    public String tag_SO_Client;
+    private String discType;
+
 
     public VmToDisplay(VmInfoByFolder vm){
         this.VmId = vm.getVmId();
@@ -130,8 +138,12 @@ class VmToDisplay {
         this.powerState = vm.getPowerState();
         this.cpuCount = vm.getCpuCount();
         this.memorySizeMB = vm.getMemorySizeMB();
-        this.discSpaceGB = vm.getDiscSpaceGB();
         this.OSType = vm.getOSType();
         this.ips = vm.getIps();
+        this.tag_SO = vm.getTag_SO();
+        this.tag_SO_Client = vm.getTag_SO_Client();
+        this.discType = vm.getDiscType();
+        this.UseddiscSpaceGB = vm.getUseddiscSpaceGB();
+        this.ReserveDdiscSpaceGB = vm.getReserveDdiscSpaceGB();
     }
 }

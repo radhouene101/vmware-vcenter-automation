@@ -225,6 +225,14 @@ public class PowerShellRunner {
                     if(vmInfoByFolder==null){
                         continue;
                     }
+                    String reservedStorage = getReservedStorage(vmInfoByFolder.getVmName());
+                    String usedStorage = getUsedStorage(vmInfoByFolder.getVmName());
+                    String diskTypes = getDiskTypes(vmInfoByFolder.getVmName());
+
+                    vmInfoByFolder.setUseddiscSpaceGB(usedStorage.substring(0,usedStorage.indexOf(".")));
+                    vmInfoByFolder.setReserveDdiscSpaceGB(reservedStorage.substring(0,reservedStorage.indexOf(".")));
+
+                    vmInfoByFolder.setDiscType(diskTypes);
                     vmInfoByFolder.setTag_SO(tag.name());
                     vmInfoByFolder.setTag_SO_Client(tag.Description());
                     vmInfoByFolderRepository.save(vmInfoByFolder);
@@ -245,7 +253,6 @@ public class PowerShellRunner {
     }
 
 //TODO: Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $true or $false. put this in every server sinon data matjich shyha
-
     public List<String> vmsByTag(String tag) throws JSONException, IOException {
         String commandToListVmByTag = "Get-VM -Tag "+ tag+ " -WarningAction SilentlyContinue 2>$null | % { $_.Id -replace '^VirtualMachine-', '' } -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Out-String";
 
@@ -263,5 +270,21 @@ public class PowerShellRunner {
         vmList.addAll(List.of(splittedIds));
         return vmList;
 
+    }
+
+    public String getReservedStorage(String vmName) throws JSONException {
+        String commandToGetStorage = " Get-VM -Name "+ vmName +" | Get-HardDisk | Measure-Object -Property Capcity -Sum).Sum\n";
+        String outputOfCommand=runCommand(connect+commandToGetStorage);
+        return outputOfCommand;
+    }
+    public String getUsedStorage(String vmName) throws JSONException {
+        String commandToGetStorage = " (Get-VM -Name "+vmName+" | Select-Object -ExpandProperty usedSpaceGB)";
+        String outputOfCommand=runCommand(connect+commandToGetStorage);
+        return outputOfCommand;
+    }
+    public String getDiskTypes(String vmName) throws JSONException {
+        String commandToGetStorage = " (Get-VM -Name "+vmName+" | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object { \"$($_.Count) $($_.Name)\" }) -join \", \"";
+        String outputOfCommand=runCommand(connect+commandToGetStorage);
+        return outputOfCommand;
     }
 }

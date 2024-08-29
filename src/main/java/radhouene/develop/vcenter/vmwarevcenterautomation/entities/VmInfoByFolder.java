@@ -21,10 +21,12 @@ public class VmInfoByFolder {
     private String powerState;
     private String cpuCount;
     private String memorySizeMB;
-    private String discSpaceGB;
+    private String UseddiscSpaceGB;
+    private String ReserveDdiscSpaceGB;
     private String OSType;
     public String ips;
     public String tag_SO;
     public String tag_SO_Client;
+    private String discType;
 
 }

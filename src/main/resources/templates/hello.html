@@ -61,7 +61,7 @@
             font-size: 16px;
         }
         button:hover {
-            background-color: #4cae4c;
+            background-color: #555555;
         }
     </style>
     <script>
@@ -69,12 +69,20 @@
             const clientTag = document.getElementById("tag_SO");
             const clientName = document.getElementById("clientName");
 
-            if (clientTag.length > 0 ) {
+            if (clientTag.value.length > 0 ) {
                 clientName.disabled = true;
-            } else {
-                clientTag.disabled = true;
+            }else if(clientTag.value.length === 0){
+                clientName.disabled = false;
             }
+            if(clientName.value.length > 0) {
+                clientTag.disabled = true;
+            }else if(clientName.value.length === 0){
+                clientTag.disabled = false;
+            }
+            infoParagraph.style.display = 'block';
+            infoParagraph.textContent = 'you can either fill tag or client , make sure to clear the client field to write in tag field and vice versa.';
         }
+
     </script>
 </head>
 <body>
@@ -82,15 +90,15 @@
     <h1>Generate PDF for Client Current Usage</h1>
     <form action="#" th:action="@{/UI-Access}" method="post" th:object="${clientSO}">
         <label>Client Tag (SO)</label>
-        <input type="text" id="tag_SO" th:field="*{tag_SO}" placeholder="Enter Client Tag" oninput="toggleFields()">
+        <input type="text" id="tag_SO" th:field="*{tag_SO}" placeholder="Enter Client Tag" oninput="toggleFields()" >
 
         <label>ClientName</label>
-        <input type="text" id="clientName" th:field="*{clientName}" placeholder="Client1" oninput="toggleFields()">
+        <input type="text" id="clientName" th:field="*{clientName}" placeholder="Client1" oninput="toggleFields()" >
 
         <label>Address to send the file to</label>
         <input type="text" id="email" th:field="*{email}" placeholder="example@next-step.tn" >
 
-        <button type="submit" class="button-sumbita">Submit</button>
+        <button type="submit" class="button-sumbit">Submit</button>
         <button type="reset" class="reset">Reset</button>
     </form>
 </div>

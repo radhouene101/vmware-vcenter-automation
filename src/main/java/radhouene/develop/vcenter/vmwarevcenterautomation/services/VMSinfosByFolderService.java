@@ -35,6 +35,8 @@ public class VMSinfosByFolderService {
     private final String vmByFolderPrefix = "https://"+ GlobalVars.serverIP +"/api/vcenter/vm?folders=";
     private final String vmNetworkUrlPrefix = "https://"+ GlobalVars.serverIP +"/api/vcenter/vm/";
     private final String vmNetworkUrlSuffix = "/guest/networking/interfaces/";
+    private final String diskTypeIds ="https://"+GlobalVars.serverIP+"/api/vcenter/vm/";
+    private final String diskTypeIdsSuffix ="/hardware/disk";
     public ResponseEntity<String> listVMs() {
         // Endpoint URL
 
@@ -47,8 +49,15 @@ public class VMSinfosByFolderService {
         return responseEntity;
     }
 
-    public Integer numberOfVMs() {
-        return listVMs().getBody().split("name").length - 1;
+
+
+
+    //TODO : add the disk type to the database by type SATA,SCSI,IDE,NVME
+
+
+    @Scheduled(fixedRate = 10000)
+    public void testDisks() throws JSONException {
+        //diskTypes("vm-15");
     }
 
     public ResponseEntity<String> allFoldersResponse() {
@@ -116,6 +125,16 @@ public class VMSinfosByFolderService {
         );
         return responseEntity;
     }
+    public String diskTypes(JSONArray disks) throws JSONException {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i = 0 ; i<disks.length() ; i++){
+            JSONObject currentDisk = disks.getJSONObject(i);
+            stringBuilder.append(currentDisk.getJSONObject("value").getString("type")).append(",");
+            System.out.println(stringBuilder);
+        }
+        stringBuilder.delete(stringBuilder.length()-1,stringBuilder.length());
+        return stringBuilder.toString();
+    }
     public VmInfoByFolder vmInfoByIdObject(ResponseEntity<String> VMjson,Folder folder,String vmID) throws JSONException {
         JSONObject vm = new JSONObject(VMjson.getBody());
 
@@ -130,7 +149,7 @@ public class VMSinfosByFolderService {
         String memory = vm.getJSONObject("memory").getString("size_MiB");
         Float memoryLong = Float.parseFloat(memory)/1024;
         output.setMemorySizeMB(memoryLong +"GB");
-        output.setDiscSpaceGB(humanReadableByteCountSI(vm.getJSONObject("disks").getJSONObject("2000").getLong("capacity")));
+        //output.setDiscSpaceGB(humanReadableByteCountSI(vm.getJSONObject("disks").getJSONObject("2000").getLong("capacity")));
         if(Objects.equals(vm.getString("power_state"), "POWERED_ON")) {
             List<String> vmIps = vmNetworkInterfaces(vmID);
             StringBuilder ips= new StringBuilder();
