@@ -109,7 +109,7 @@ public class VMSinfosByFolderService {
         return output;
     }
     public record Folder(String folderId, String folderName, String folderType) { }
-    @Scheduled(fixedRate = 120000)
+    @Scheduled(cron = "* 10 * * * *" )
     public void printVMs() throws JSONException {
         saveAllVms();
     }
@@ -207,9 +207,13 @@ public class VMSinfosByFolderService {
                 VmInfoByFolder sameVmButFromDatabase = repository.findById(vmToSave.getVmId()).orElse(null);
                 if (sameVmButFromDatabase == null) {
                     repository.save(vmToSave);
+                    //houni we set missing values mel api , khater njibouhom mel powercli bch yokedou ypersistiw w maywaliwch null
                 }else if(!sameVmButFromDatabase.equals(vmToSave)){
                     vmToSave.setTag_SO_Client(sameVmButFromDatabase.getTag_SO_Client());
                     vmToSave.setTag_SO(sameVmButFromDatabase.getTag_SO());
+                    vmToSave.setDiscType(sameVmButFromDatabase.getDiscType());
+                    vmToSave.setUseddiscSpaceGB(sameVmButFromDatabase.getUseddiscSpaceGB());
+                    vmToSave.setReserveDdiscSpaceGB(sameVmButFromDatabase.getReserveDdiscSpaceGB());
                     repository.save(vmToSave);
                 }
                 //TODO : el mochkel khater nsavi direct donc  tags yetnahaw
@@ -221,8 +225,8 @@ public class VMSinfosByFolderService {
         //check ken el vm andou tag or not ken lé nhoto tag vm
         for(VmInfoByFolder vm : allVms){
             if(vm.getTag_SO()==null || !vm.getTag_SO().startsWith("SO")){
-                vm.setTag_SO("vm");
-                vm.setTag_SO_Client("vm");
+                vm.setTag_SO("00000");
+                vm.setTag_SO_Client("00000");
                 repository.save(vm);
            }
         }

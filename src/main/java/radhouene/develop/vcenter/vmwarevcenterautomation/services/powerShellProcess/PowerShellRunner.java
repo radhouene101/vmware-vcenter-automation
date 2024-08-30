@@ -212,18 +212,7 @@ public class PowerShellRunner {
     public record Tag(String name, String Description) {}
 
 
-    @Scheduled(fixedRate = 10000)
-    public void testForVmStorage() throws JSONException {
-        System.out.println("\"$($_.Count) $($_.Name)\"");
-        String reservedStorage = getReservedStorage("VMware vCenter Server");
-        String usedStorage = getUsedStorage("VMware vCenter Server");
-
-        String diskTypes = getDiskTypes("VMware vCenter Server");
-        System.out.println("used storage is "+usedStorage);
-        System.out.println("reserved storage is "+reservedStorage);
-        System.out.println("disk type "+diskTypes);
-    }
-    //@Scheduled(fixedDelay = 50000)
+    @Scheduled(cron = "0 5 * * * *" )
     public void tryingPowerShellExec() throws JSONException, IOException {
          List<Tag> tags = getTagsList();
             for(Tag tag: tags){
@@ -244,8 +233,8 @@ public class PowerShellRunner {
                     System.out.println("reserved storage is "+reservedStorage);
                     try {
 
-                        vmInfoByFolder.setUseddiscSpaceGB(usedStorage.substring(0,usedStorage.indexOf(".")+3));
-                        vmInfoByFolder.setReserveDdiscSpaceGB(reservedStorage.substring(0,reservedStorage.indexOf(".")+3));
+                        vmInfoByFolder.setUseddiscSpaceGB(usedStorage.substring(0,usedStorage.indexOf(".")+3)+" GB");
+                        vmInfoByFolder.setReserveDdiscSpaceGB(reservedStorage.substring(0,reservedStorage.indexOf(".")+3)+" GB");
                     }catch (StringIndexOutOfBoundsException e){
                         System.out.println(e.getMessage());
                     }
@@ -262,7 +251,7 @@ public class PowerShellRunner {
         JSONArray tags = getTagsJson("Get-Tag | ConvertTo-Json");
         List<Tag> tagList = new ArrayList<>();
         for (int i = 0; i < tags.length(); i++) {
-            if(!tags.getJSONObject(i).getString("Name").startsWith("SO")){
+            if(tags.getJSONObject(i).getString("Name").isEmpty()){
                 continue;
             }
             tagList.add(new Tag(tags.getJSONObject(i).getString("Name"), tags.getJSONObject(i).getString("Description")));
@@ -272,7 +261,7 @@ public class PowerShellRunner {
 
 //TODO: Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $true or $false. put this in every server sinon data matjich shyha
     public List<String> vmsByTag(String tag) throws JSONException, IOException {
-        String commandToListVmByTag = "Get-VM -Tag "+ tag+ " -WarningAction SilentlyContinue 2>$null | % { $_.Id -replace '^VirtualMachine-', '' } -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Out-String";
+        String commandToListVmByTag = "Get-VM -Tag '"+ tag+ "' -WarningAction SilentlyContinue 2>$null | % { $_.Id -replace '^VirtualMachine-', '' } -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Out-String";
 
         String outputOfCommand=runCommand(connect+commandToListVmByTag);
         List<String> vmList = new ArrayList<>();
@@ -299,11 +288,7 @@ public class PowerShellRunner {
         return runCommand(connect+commandToGetStorage);
     }
     public String getDiskTypes(String vmName) throws JSONException {
-//        String powershellCommand = "(Get-VM -Name '" +
-//                vmName +
-//                "' | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object "+
-//                "{ \"$($_.Count) $($_.Name)\" })"+
-//                " -join ', '";
+
         String powershellCommand = "(Get-VM -Name '"+vmName+"' | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object { \\\"$($_.Count) $($_.Name)\\\" }) -join ', '";
 
         return runCommand(connect+powershellCommand);
