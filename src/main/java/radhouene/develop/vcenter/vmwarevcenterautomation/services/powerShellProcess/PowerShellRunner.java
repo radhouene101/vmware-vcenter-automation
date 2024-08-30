@@ -212,7 +212,18 @@ public class PowerShellRunner {
     public record Tag(String name, String Description) {}
 
 
-    @Scheduled(fixedDelay = 50000)
+    @Scheduled(fixedRate = 10000)
+    public void testForVmStorage() throws JSONException {
+        System.out.println("\"$($_.Count) $($_.Name)\"");
+        String reservedStorage = getReservedStorage("VMware vCenter Server");
+        String usedStorage = getUsedStorage("VMware vCenter Server");
+
+        String diskTypes = getDiskTypes("VMware vCenter Server");
+        System.out.println("used storage is "+usedStorage);
+        System.out.println("reserved storage is "+reservedStorage);
+        System.out.println("disk type "+diskTypes);
+    }
+    //@Scheduled(fixedDelay = 50000)
     public void tryingPowerShellExec() throws JSONException, IOException {
          List<Tag> tags = getTagsList();
             for(Tag tag: tags){
@@ -229,8 +240,15 @@ public class PowerShellRunner {
                     String usedStorage = getUsedStorage(vmInfoByFolder.getVmName());
                     String diskTypes = getDiskTypes(vmInfoByFolder.getVmName());
 
-                    vmInfoByFolder.setUseddiscSpaceGB(usedStorage.substring(0,usedStorage.indexOf(".")));
-                    vmInfoByFolder.setReserveDdiscSpaceGB(reservedStorage.substring(0,reservedStorage.indexOf(".")));
+                    System.out.println("used storage is "+usedStorage);
+                    System.out.println("reserved storage is "+reservedStorage);
+                    try {
+
+                        vmInfoByFolder.setUseddiscSpaceGB(usedStorage.substring(0,usedStorage.indexOf(".")+3));
+                        vmInfoByFolder.setReserveDdiscSpaceGB(reservedStorage.substring(0,reservedStorage.indexOf(".")+3));
+                    }catch (StringIndexOutOfBoundsException e){
+                        System.out.println(e.getMessage());
+                    }
 
                     vmInfoByFolder.setDiscType(diskTypes);
                     vmInfoByFolder.setTag_SO(tag.name());
@@ -273,18 +291,21 @@ public class PowerShellRunner {
     }
 
     public String getReservedStorage(String vmName) throws JSONException {
-        String commandToGetStorage = " Get-VM -Name "+ vmName +" | Get-HardDisk | Measure-Object -Property Capcity -Sum).Sum\n";
-        String outputOfCommand=runCommand(connect+commandToGetStorage);
-        return outputOfCommand;
+        String commandToGetStorage = "  (Get-VM -Name '"+vmName+"' | Get-HardDisk | Measure-Object -Property CapacityGB -Sum).Sum";
+        return runCommand(connect+commandToGetStorage);
     }
     public String getUsedStorage(String vmName) throws JSONException {
-        String commandToGetStorage = " (Get-VM -Name "+vmName+" | Select-Object -ExpandProperty usedSpaceGB)";
-        String outputOfCommand=runCommand(connect+commandToGetStorage);
-        return outputOfCommand;
+        String commandToGetStorage = " (Get-VM -Name '"+vmName+"' | Select-Object -ExpandProperty usedSpaceGB)";
+        return runCommand(connect+commandToGetStorage);
     }
     public String getDiskTypes(String vmName) throws JSONException {
-        String commandToGetStorage = " (Get-VM -Name "+vmName+" | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object { \"$($_.Count) $($_.Name)\" }) -join \", \"";
-        String outputOfCommand=runCommand(connect+commandToGetStorage);
-        return outputOfCommand;
+//        String powershellCommand = "(Get-VM -Name '" +
+//                vmName +
+//                "' | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object "+
+//                "{ \"$($_.Count) $($_.Name)\" })"+
+//                " -join ', '";
+        String powershellCommand = "(Get-VM -Name '"+vmName+"' | Get-HardDisk | Select-Object -ExpandProperty DiskType | Group-Object | ForEach-Object { \\\"$($_.Count) $($_.Name)\\\" }) -join ', '";
+
+        return runCommand(connect+powershellCommand);
     }
 }

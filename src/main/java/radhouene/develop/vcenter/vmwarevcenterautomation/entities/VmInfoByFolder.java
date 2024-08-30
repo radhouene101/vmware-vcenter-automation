@@ -1,5 +1,6 @@
 package radhouene.develop.vcenter.vmwarevcenterautomation.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -24,9 +25,10 @@ public class VmInfoByFolder {
     private String UseddiscSpaceGB;
     private String ReserveDdiscSpaceGB;
     private String OSType;
-    public String ips;
+    private String ips;
     public String tag_SO;
     public String tag_SO_Client;
+    @Column(length = 3000)
     private String discType;
 
 }
