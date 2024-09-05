@@ -66,7 +66,6 @@ public class PowerShellRunner {
                 output.append(line).append("\n");
             }
         }
-
         // Wait for the process to finish
         process.waitFor();
     } catch (Exception e) {
