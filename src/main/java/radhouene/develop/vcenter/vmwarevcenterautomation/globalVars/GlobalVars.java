@@ -9,9 +9,9 @@ import java.util.List;
 public class GlobalVars {
     public static HttpHeaders cookies;
     public static String sessionId;
-    public static String username="administrator@vsphere.local";
-    public static String password="Linux*2024++";
-    public static String serverIP="10.9.21.102";
+    public static String username="username";
+    public static String password="password";
+    public static String serverIP="serverIP";
 
 
 
