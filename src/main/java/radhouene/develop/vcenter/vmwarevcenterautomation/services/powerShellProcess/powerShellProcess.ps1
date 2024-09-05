@@ -11,7 +11,7 @@ function Initialize-Session {
 }
 
 # Initialize the session
-Initialize-Session -Server "10.9.21.102" -User "administrator@vsphere.local" -Password "Linux*2024++"
+Initialize-Session -Server "serverIP" -User "username" -Password "pass"
 
 # Keep the process running to accept commands
 # Read commands from Standard Input

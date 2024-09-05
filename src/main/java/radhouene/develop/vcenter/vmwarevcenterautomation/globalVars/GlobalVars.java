@@ -9,12 +9,9 @@ import java.util.List;
 public class GlobalVars {
     public static HttpHeaders cookies;
     public static String sessionId;
-    // put username of vsphere
-    public static String username="username";
-   //password of vsphere
-    public static String password="password";
-    //put the ip of the server
-    public static String serverIP="serverIP";
+    public static String username="administrator@vsphere.local";
+    public static String password="Linux*2024++";
+    public static String serverIP="10.9.21.102";
 
 
 
