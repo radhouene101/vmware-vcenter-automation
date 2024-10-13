@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
+//test-pipeline
 public class GlobalVars {
     public static HttpHeaders cookies;
     public static String sessionId;
