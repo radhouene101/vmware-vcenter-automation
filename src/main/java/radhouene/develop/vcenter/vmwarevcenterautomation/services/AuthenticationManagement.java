@@ -48,7 +48,7 @@ public class AuthenticationManagement {
                 entity,
                 String.class);
 
-        // Extract session token from the response body (typically JSON)
+        // Extract session token from the response body 
         GlobalVars.cookies=headers;
         JSONObject j = new JSONObject(response.getBody());
         GlobalVars.sessionId = (String) j.get("value");
